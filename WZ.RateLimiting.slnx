@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/WZ.RateLimiting.Benchmarks/WZ.RateLimiting.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/BasicApi/BasicApi.csproj" />
     <Project Path="samples/MinimalApi/MinimalApi.csproj" />
