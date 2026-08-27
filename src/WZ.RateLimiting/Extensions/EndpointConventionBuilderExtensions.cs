@@ -14,6 +14,13 @@ namespace WZ.RateLimiting.Extensions;
 /// </example>
 public static class EndpointConventionBuilderExtensions
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="policyName"></param>
+    /// <typeparam name="TBuilder"></typeparam>
+    /// <returns></returns>
     public static TBuilder RequireWzRateLimiting<TBuilder>(this TBuilder builder, string policyName)
         where TBuilder : IEndpointConventionBuilder
     {

@@ -13,8 +13,17 @@ namespace WZ.RateLimiting.Identifiers;
 /// </summary>
 public sealed class IpAddressIdentifier : IClientIdentifier
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public string Name => "ip";
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public ValueTask<string> GetIdentifierAsync(HttpContext context, CancellationToken cancellationToken)
     {
         var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";

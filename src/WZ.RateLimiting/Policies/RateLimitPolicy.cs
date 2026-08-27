@@ -11,10 +11,25 @@ namespace WZ.RateLimiting.Policies;
 /// </summary>
 public sealed class RateLimitPolicy
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public string Name { get; }
+    /// <summary>
+    /// 
+    /// </summary>
     public Type IdentifierType { get; }
+    /// <summary>
+    /// 
+    /// </summary>
     public Type AlgorithmType { get; }
+    /// <summary>
+    /// 
+    /// </summary>
     public int PermitLimit { get; }
+    /// <summary>
+    /// 
+    /// </summary>
     public TimeSpan Window { get; }
 
     private RateLimitPolicy(

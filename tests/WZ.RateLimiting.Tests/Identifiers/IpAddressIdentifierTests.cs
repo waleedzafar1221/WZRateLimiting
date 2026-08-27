@@ -4,8 +4,14 @@ using WZ.RateLimiting.Identifiers;
 
 namespace WZ.RateLimiting.Tests.Identifiers;
 
+/// <summary>
+/// 
+/// </summary>
 public class IpAddressIdentifierTests
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task GetIdentifierAsync_ReturnsRemoteIpAddress()
     {
@@ -18,6 +24,9 @@ public class IpAddressIdentifierTests
         Assert.Equal("203.0.113.5", result);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task GetIdentifierAsync_NoRemoteIp_ReturnsUnknown()
     {

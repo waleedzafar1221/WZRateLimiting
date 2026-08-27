@@ -2,8 +2,14 @@
 
 namespace WZ.RateLimiting.Tests.Storage;
 
+/// <summary>
+/// 
+/// </summary>
 public class InMemoryRateLimitStoreTests
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task IncrementAsync_FirstCall_ReturnsCountOne()
     {
@@ -14,6 +20,9 @@ public class InMemoryRateLimitStoreTests
         Assert.Equal(1, entry.Count);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task IncrementAsync_MultipleCalls_IncrementsSequentially()
     {
@@ -27,6 +36,9 @@ public class InMemoryRateLimitStoreTests
         Assert.Equal(3, entry.Count);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task IncrementAsync_DifferentKeys_AreIndependent()
     {
@@ -43,6 +55,9 @@ public class InMemoryRateLimitStoreTests
         Assert.Equal(1, entryB.Count);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task IncrementAsync_AfterWindowExpires_CounterResets()
     {
@@ -59,6 +74,9 @@ public class InMemoryRateLimitStoreTests
         Assert.Equal(1, entry.Count);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task IncrementAsync_100ConcurrentCalls_CountsExactlyOneHundred()
     {

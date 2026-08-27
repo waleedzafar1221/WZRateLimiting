@@ -15,8 +15,15 @@ namespace WZ.RateLimiting.Attributes;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
 public sealed class EnableRateLimitingAttribute : Attribute, IRateLimitingMetadata
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public string PolicyName { get; }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="policyName"></param>
     public EnableRateLimitingAttribute(string policyName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(policyName);

@@ -6,11 +6,25 @@
 /// </summary>
 public interface IRateLimitStore
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="window"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     ValueTask<RateLimitCounterEntry> GetOrCreateAsync(
         string key,
         TimeSpan window,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="window"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     ValueTask<RateLimitCounterEntry> IncrementAsync(
         string key,
         TimeSpan window,

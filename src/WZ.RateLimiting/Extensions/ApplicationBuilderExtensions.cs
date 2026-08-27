@@ -8,6 +8,11 @@ namespace WZ.RateLimiting.Extensions;
 /// </summary>
 public static class ApplicationBuilderExtensions
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="app"></param>
+    /// <returns></returns>
     public static IApplicationBuilder UseWzRateLimiting(this IApplicationBuilder app) =>
         app.UseMiddleware<RateLimitingMiddleware>();
 }

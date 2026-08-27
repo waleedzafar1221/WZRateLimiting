@@ -10,6 +10,12 @@ namespace WZ.RateLimiting.Algorithms;
 /// </summary>
 public sealed class FixedWindowAlgorithm(IRateLimitStore store) : IRateLimitAlgorithm
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async ValueTask<RateLimitDecision> EvaluateAsync(
         RateLimitContext context,
         CancellationToken cancellationToken)

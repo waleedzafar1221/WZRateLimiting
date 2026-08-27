@@ -9,5 +9,8 @@ namespace WZ.RateLimiting.Abstractions;
 /// </summary>
 public interface IRateLimitingMetadata
 {
+    /// <summary>
+    /// 
+    /// </summary>
     string PolicyName { get; }
 }

@@ -10,15 +10,25 @@ using WZ.RateLimiting.Extensions;
 
 namespace WZ.RateLimiting.IntegrationTests;
 
+/// <summary>
+/// 
+/// </summary>
 [ApiController]
 [Route("api")]
 public class TestController : ControllerBase
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     [EnableRateLimiting("controller-policy")]
     [HttpGet("login")]
     public IActionResult Login() => Ok("login-ok");
 }
 
+/// <summary>
+/// 
+/// </summary>
 public class ControllerPolicyResolutionTests
 {
     private static async Task<TestServer> CreateServerAsync()
@@ -51,6 +61,9 @@ public class ControllerPolicyResolutionTests
         return host.GetTestServer();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task ControllerAction_WithAttribute_IsRateLimited()
     {

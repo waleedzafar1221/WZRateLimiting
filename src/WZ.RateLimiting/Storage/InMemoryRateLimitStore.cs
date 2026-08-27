@@ -13,6 +13,13 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
 {
     private readonly ConcurrentDictionary<string, CounterState> _counters = new();
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="window"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public ValueTask<RateLimitCounterEntry> GetOrCreateAsync(
         string key,
         TimeSpan window,
@@ -22,6 +29,13 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
         return ValueTask.FromResult(Snapshot(state));
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="window"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public ValueTask<RateLimitCounterEntry> IncrementAsync(
         string key,
         TimeSpan window,

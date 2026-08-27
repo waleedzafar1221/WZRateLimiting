@@ -7,6 +7,12 @@
 /// </summary>
 public interface IRateLimitAlgorithm
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     ValueTask<RateLimitDecision> EvaluateAsync(
         RateLimitContext context,
         CancellationToken cancellationToken);

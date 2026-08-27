@@ -6,6 +6,9 @@ using WZ.RateLimiting.Storage;
 
 namespace WZ.RateLimiting.Tests.Algorithms;
 
+/// <summary>
+/// 
+/// </summary>
 public class FixedWindowAlgorithmTests
 {
     private static RateLimitContext BuildContext(string identifierKey, int limit, TimeSpan window)
@@ -20,6 +23,9 @@ public class FixedWindowAlgorithmTests
         return new RateLimitContext(identifierKey, policy);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task EvaluateAsync_UnderLimit_IsAllowed()
     {
@@ -32,6 +38,9 @@ public class FixedWindowAlgorithmTests
         Assert.Equal(4, decision.Remaining);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task EvaluateAsync_ExactlyAtLimit_LastRequestAllowed_NextRejected()
     {
@@ -50,6 +59,9 @@ public class FixedWindowAlgorithmTests
         Assert.Equal(0, fourth.Remaining);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task EvaluateAsync_DifferentIdentifiers_AreIndependent()
     {
@@ -64,6 +76,9 @@ public class FixedWindowAlgorithmTests
         Assert.True(decisionB.IsAllowed);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task EvaluateAsync_RejectedRequest_HasRetryAfterSet()
     {

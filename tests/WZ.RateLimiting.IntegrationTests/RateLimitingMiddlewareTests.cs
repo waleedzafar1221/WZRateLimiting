@@ -8,6 +8,9 @@ using WZ.RateLimiting.Extensions;
 
 namespace WZ.RateLimiting.IntegrationTests;
 
+/// <summary>
+/// 
+/// </summary>
 public class RateLimitingMiddlewareTests
 {
     private static async Task<TestServer> CreateServerAsync(int limit, TimeSpan window)
@@ -42,6 +45,9 @@ public class RateLimitingMiddlewareTests
         return host.GetTestServer();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task Request_UnderLimit_Returns200()
     {
@@ -53,6 +59,9 @@ public class RateLimitingMiddlewareTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task Request_OverLimit_Returns429()
     {
@@ -66,6 +75,9 @@ public class RateLimitingMiddlewareTests
         Assert.Equal((HttpStatusCode)429, third.StatusCode);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task RejectedRequest_HasRetryAfterHeader()
     {
@@ -78,6 +90,9 @@ public class RateLimitingMiddlewareTests
         Assert.True(rejected.Headers.Contains("Retry-After"));
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task AllowedRequest_HasRateLimitHeaders()
     {

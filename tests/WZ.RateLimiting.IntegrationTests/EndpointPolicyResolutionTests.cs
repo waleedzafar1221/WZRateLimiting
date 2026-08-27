@@ -8,6 +8,9 @@ using WZ.RateLimiting.Extensions;
 
 namespace WZ.RateLimiting.IntegrationTests;
 
+/// <summary>
+/// 
+/// </summary>
 public class EndpointPolicyResolutionTests
 {
     private static async Task<TestServer> CreateServerAsync()
@@ -42,6 +45,9 @@ public class EndpointPolicyResolutionTests
         return host.GetTestServer();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task EndpointWithoutMetadata_IsNeverRateLimited()
     {
@@ -55,6 +61,9 @@ public class EndpointPolicyResolutionTests
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task DifferentEndpoints_UseDifferentPolicies()
     {
@@ -72,6 +81,9 @@ public class EndpointPolicyResolutionTests
         Assert.Equal(HttpStatusCode.OK, relaxed.StatusCode);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Fact]
     public async Task UnregisteredPolicyName_Throws()
     {

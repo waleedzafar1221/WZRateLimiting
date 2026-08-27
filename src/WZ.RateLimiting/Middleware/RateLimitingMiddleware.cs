@@ -17,6 +17,11 @@ namespace WZ.RateLimiting.Middleware;
 /// </remarks>
 public sealed class RateLimitingMiddleware(RequestDelegate next, RateLimitingOptions options)
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public async Task InvokeAsync(HttpContext context)
     {
         var metadata = context.GetEndpoint()?.Metadata.GetMetadata<IRateLimitingMetadata>();
