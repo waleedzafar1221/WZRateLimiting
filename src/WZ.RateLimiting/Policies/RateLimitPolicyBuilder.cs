@@ -11,7 +11,7 @@ public sealed class RateLimitPolicyBuilder
 {
     private readonly string _name;
     private Type _identifierType = typeof(IpAddressIdentifier);
-    private Type _algorithmType = typeof(FixedWindowAlgorithm);
+    private readonly Type _algorithmType = typeof(FixedWindowAlgorithm);
     private int _limit;
     private TimeSpan _window;
 

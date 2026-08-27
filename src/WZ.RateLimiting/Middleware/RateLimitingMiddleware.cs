@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using WZ.RateLimiting.Abstractions;
 using WZ.RateLimiting.Options;
@@ -14,24 +15,15 @@ namespace WZ.RateLimiting.Middleware;
 /// pipeline (the first one registered). Per-endpoint policy resolution via
 /// [EnableRateLimiting]/.RequireRateLimiting(...) is added in Milestone 5.
 /// </remarks>
-public sealed class RateLimitingMiddleware
+public sealed class RateLimitingMiddleware(RequestDelegate next, RateLimitingOptions options)
 {
-    private readonly RequestDelegate _next;
-    private readonly RateLimitingOptions _options;
-
-    public RateLimitingMiddleware(RequestDelegate next, RateLimitingOptions options)
-    {
-        _next = next;
-        _options = options;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
-        var policy = _options.Policies.Values.FirstOrDefault();
+        var policy = options.Policies.Values.FirstOrDefault();
         if (policy is null)
         {
             // No policy configured — nothing to enforce.
-            await _next(context);
+            await next(context);
             return;
         }
 
@@ -54,12 +46,12 @@ public sealed class RateLimitingMiddleware
             if (decision.RetryAfter is { } retryAfter)
             {
                 var seconds = Math.Max(0, Math.Ceiling(retryAfter.TotalSeconds));
-                context.Response.Headers["Retry-After"] = seconds.ToString();
+                context.Response.Headers["Retry-After"] = seconds.ToString(CultureInfo.InvariantCulture);
             }
 
             return;
         }
 
-        await _next(context);
+        await next(context);
     }
 }
