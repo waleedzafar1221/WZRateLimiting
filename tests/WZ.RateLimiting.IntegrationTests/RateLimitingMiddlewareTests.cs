@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WZ.RateLimiting.Extensions;
 
@@ -18,6 +18,7 @@ public class RateLimitingMiddlewareTests
                 webHost.UseTestServer();
                 webHost.ConfigureServices(services =>
                 {
+                    services.AddRouting();
                     services.AddWzRateLimiting(options =>
                     {
                         options.AddPolicy("test", policy =>
@@ -28,8 +29,12 @@ public class RateLimitingMiddlewareTests
                 });
                 webHost.Configure(app =>
                 {
+                    app.UseRouting();
                     app.UseWzRateLimiting();
-                    app.Run(async context => await context.Response.WriteAsync("OK"));
+                    app.UseEndpoints(endpoints =>
+                    {
+                        endpoints.MapGet("/", () => "OK").RequireWzRateLimiting("test");
+                    });
                 });
             });
 

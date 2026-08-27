@@ -19,12 +19,21 @@ public sealed class RateLimitingMiddleware(RequestDelegate next, RateLimitingOpt
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        var policy = options.Policies.Values.FirstOrDefault();
-        if (policy is null)
+        var metadata = context.GetEndpoint()?.Metadata.GetMetadata<IRateLimitingMetadata>();
+
+        if (metadata is null)
         {
-            // No policy configured — nothing to enforce.
+            // No policy attached to this endpoint — not rate limited.
             await next(context);
             return;
+        }
+
+        if (!options.Policies.TryGetValue(metadata.PolicyName, out var policy))
+        {
+            throw new InvalidOperationException(
+                $"Endpoint requires rate-limit policy \"{metadata.PolicyName}\", " +
+                $"but no policy with that name is registered. Did you forget to call " +
+                $"options.AddPolicy(\"{metadata.PolicyName}\", ...)?");
         }
 
         var identifier = (IClientIdentifier)context.RequestServices.GetRequiredService(policy.IdentifierType);
