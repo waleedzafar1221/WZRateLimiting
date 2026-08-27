@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WZ.RateLimiting/WZ.RateLimiting.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WZ.RateLimiting.Tests/WZ.RateLimiting.Tests.csproj" />
+  </Folder>
+</Solution>

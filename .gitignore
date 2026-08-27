@@ -1,0 +1,33 @@
+## Build results
+bin/
+obj/
+out/
+
+## Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+## Test / coverage
+TestResults/
+*.trx
+coverage*.json
+coverage*.xml
+coverage*.info
+
+## Benchmarks
+BenchmarkDotNet.Artifacts/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+## OS
+.DS_Store
+Thumbs.db
+
+SMART-RATE-LIMITER.md
+PROMT-SMART-RATE-LIMITER
