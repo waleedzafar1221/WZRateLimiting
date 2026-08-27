@@ -6,13 +6,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    
+    <VersionPrefix>1.0.0</VersionPrefix>
   </PropertyGroup>
-
+  
   <PropertyGroup>
-    <Authors>Your Name</Authors>
+    <Authors>Waleed Zafar</Authors>
+    <Description>ASP.NET Core rate-limiting infrastructure library with clean abstractions for policies, identifiers, algorithms, and storage.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/yourusername/WZRateLimiting</RepositoryUrl>
-    <PackageTags>aspnetcore;rate-limiting;middleware</PackageTags>
+    <RepositoryUrl>https://github.com/waleedzafar1221/WZRateLimiting</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>aspnetcore;rate-limiting;middleware;throttling</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 </Project>
