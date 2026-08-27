@@ -3,6 +3,7 @@
     <Project Path="src/WZ.RateLimiting/WZ.RateLimiting.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/WZ.RateLimiting.IntegrationTests/WZ.RateLimiting.IntegrationTests.csproj" />
     <Project Path="tests/WZ.RateLimiting.Tests/WZ.RateLimiting.Tests.csproj" />
   </Folder>
 </Solution>
