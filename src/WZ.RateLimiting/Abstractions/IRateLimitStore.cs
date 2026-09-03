@@ -29,4 +29,19 @@ public interface IRateLimitStore
         string key,
         TimeSpan window,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    ValueTask<bool> GetAsync(string key);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="entry"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask<RateLimitCounterEntry> UpdateAsync(string key,RateLimitCounterEntry entry, CancellationToken cancellationToken);
 }

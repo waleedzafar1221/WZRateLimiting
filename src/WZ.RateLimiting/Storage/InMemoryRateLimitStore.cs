@@ -52,11 +52,11 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
             var now = DateTimeOffset.UtcNow;
             if (now - state.WindowStart >= window)
             {
+                state.PCount = state.Count;
                 state.WindowStart = now;
                 state.Count = 0;
             }
         }
-
         // Incrementing the count itself, once we know we're in the current
         // window, is a single atomic operation — no lock needed here.
         Interlocked.Increment(ref state.Count);
@@ -64,11 +64,33 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
         return ValueTask.FromResult(Snapshot(state));
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public ValueTask<bool> GetAsync(string key)
+    {
+        var state = _counters.TryGetValue(key,out var counterState);
+        return ValueTask.FromResult(state);
+    }
+
+    /// <inheritdoc />
+    public ValueTask<RateLimitCounterEntry> UpdateAsync(string key, RateLimitCounterEntry entry, CancellationToken cancellationToken)
+    {
+        _counters[key].WindowStart = entry.WindowStart;
+        _counters[key].Count = entry.Count;
+        _counters[key].WindowStart = entry.WindowStart;   // duplicate line, harmless but pointless
+        _counters[key].PCount = entry.PCount;
+        return ValueTask.FromResult(Snapshot(_counters[key]));
+    }
     private static RateLimitCounterEntry Snapshot(CounterState state) =>
-        new(Volatile.Read(ref state.Count), state.WindowStart);
+        new(Volatile.Read(ref state.PCount),Volatile.Read(ref state.Count), state.WindowStart);
 
     private sealed class CounterState(DateTimeOffset windowStart)
     {
+        public int PCount=0;
         public int Count;
         public DateTimeOffset WindowStart = windowStart;
         public readonly object ResetLock = new();

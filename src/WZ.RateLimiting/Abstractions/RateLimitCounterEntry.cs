@@ -5,5 +5,6 @@
 /// Contains facts only — no allow/deny decision.
 /// </summary>
 public readonly record struct RateLimitCounterEntry(
+    int PCount,
     int Count,
     DateTimeOffset WindowStart);

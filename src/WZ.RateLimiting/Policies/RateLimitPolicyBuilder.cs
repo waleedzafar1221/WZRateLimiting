@@ -11,7 +11,7 @@ public sealed class RateLimitPolicyBuilder
 {
     private readonly string _name;
     private Type _identifierType = typeof(IpAddressIdentifier);
-    private readonly Type _algorithmType = typeof(FixedWindowAlgorithm);
+    private Type _algorithmType = typeof(FixedWindowAlgorithm);
     private int _limit;
     private TimeSpan _window;
 
@@ -24,6 +24,26 @@ public sealed class RateLimitPolicyBuilder
     public RateLimitPolicyBuilder PerIp()
     {
         _identifierType = typeof(IpAddressIdentifier);
+        return this;
+    }
+    
+    /// <summary>
+    /// Fixed window algorithm
+    /// </summary>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder UseFixedWindow()
+    {
+        _algorithmType = typeof(FixedWindowAlgorithm);
+        return this;
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder UseSlideWindow()
+    {
+        _algorithmType = typeof(SlidingWindowAlgorithm);
         return this;
     }
 

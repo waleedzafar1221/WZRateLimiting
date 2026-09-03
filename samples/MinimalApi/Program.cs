@@ -7,7 +7,7 @@ builder.Services.AddWzRateLimiting(options =>
 {
     options.AddPolicy("public-api", policy =>
     {
-        policy.PerIp().Limit(5).PerMinute();
+        policy.PerIp().UseSlideWindow().Limit(5).PerMinute();
     });
 });
 
