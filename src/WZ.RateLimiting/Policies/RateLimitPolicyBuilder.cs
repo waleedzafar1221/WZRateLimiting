@@ -13,6 +13,7 @@ public sealed class RateLimitPolicyBuilder
     private Type _identifierType = typeof(IpAddressIdentifier);
     private Type _algorithmType = typeof(FixedWindowAlgorithm);
     private int _limit;
+    private int _refillCapacity;
     private TimeSpan _window;
 
     internal RateLimitPolicyBuilder(string name)
@@ -46,11 +47,40 @@ public sealed class RateLimitPolicyBuilder
         _algorithmType = typeof(SlidingWindowAlgorithm);
         return this;
     }
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder UseTokenBucket()
+    {
+        _algorithmType = typeof(TokenBucketAlgorithm);
+        return this;
+    }
     /// <summary>Sets the maximum number of requests allowed within the window.</summary>
     public RateLimitPolicyBuilder Limit(int permitLimit)
     {
         _limit = permitLimit;
+        return this;
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="burstCapacity"></param>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder Capacity(int burstCapacity)
+    {
+        _limit = burstCapacity;
+        return this;
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="refillCapacity"></param>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder Refill(int refillCapacity)
+    {
+        _refillCapacity = refillCapacity;
         return this;
     }
 
@@ -68,5 +98,5 @@ public sealed class RateLimitPolicyBuilder
     }
 
     internal RateLimitPolicy Build() =>
-        RateLimitPolicy.Create(_name, _identifierType, _algorithmType, _limit, _window);
+        RateLimitPolicy.Create(_name, _identifierType, _algorithmType, _limit, _window,_refillCapacity=1);
 }

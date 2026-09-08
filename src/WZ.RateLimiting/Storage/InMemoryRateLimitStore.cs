@@ -12,7 +12,7 @@ namespace WZ.RateLimiting.Storage;
 public sealed class InMemoryRateLimitStore : IRateLimitStore
 {
     private readonly ConcurrentDictionary<string, CounterState> _counters = new();
-
+    
     /// <summary>
     /// 
     /// </summary>
@@ -85,8 +85,42 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
         _counters[key].PCount = entry.PCount;
         return ValueTask.FromResult(Snapshot(_counters[key]));
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="entry"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public ValueTask<bool> CheckBucketAsync(string key, RateLimitCounterEntry entry, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(false);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="capacity"></param>
+    /// <param name="window"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public ValueTask<RateLimitCounterEntry> IncrementBucketAsync(string key, int capacity, TimeSpan window, CancellationToken cancellationToken)
+    {
+        var state = _counters.GetOrAdd(key, _ =>
+        {
+            var newState = new CounterState(DateTimeOffset.UtcNow);
+            newState.Count = capacity;
+            return newState;
+        });
+        return ValueTask.FromResult(Snapshot(state));
+    }
+
     private static RateLimitCounterEntry Snapshot(CounterState state) =>
         new(Volatile.Read(ref state.PCount),Volatile.Read(ref state.Count), state.WindowStart);
+    
 
     private sealed class CounterState(DateTimeOffset windowStart)
     {
@@ -95,4 +129,5 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
         public DateTimeOffset WindowStart = windowStart;
         public readonly object ResetLock = new();
     }
+    
 }

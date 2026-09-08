@@ -31,19 +31,24 @@ public sealed class RateLimitPolicy
     /// 
     /// </summary>
     public TimeSpan Window { get; }
+    /// <summary>
+    /// 
+    /// </summary>
+    public int RefillCapacity { get; }
 
     private RateLimitPolicy(
         string name,
         Type identifierType,
         Type algorithmType,
         int permitLimit,
-        TimeSpan window)
+        TimeSpan window,int refillCapacity=1)
     {
         Name = name;
         IdentifierType = identifierType;
         AlgorithmType = algorithmType;
         PermitLimit = permitLimit;
         Window = window;
+        RefillCapacity = refillCapacity;
     }
 
     /// <summary>
@@ -54,7 +59,8 @@ public sealed class RateLimitPolicy
         Type identifierType,
         Type algorithmType,
         int permitLimit,
-        TimeSpan window)
+        TimeSpan window,
+        int refillCapacity=1)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Policy name must not be empty.", nameof(name));
@@ -75,6 +81,13 @@ public sealed class RateLimitPolicy
         if (window <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(window), "Must be greater than zero.");
 
-        return new RateLimitPolicy(name, identifierType, algorithmType, permitLimit, window);
+        if (refillCapacity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(refillCapacity), "Must be greater than zero.");
+        }
+
+        return new RateLimitPolicy(name, identifierType, algorithmType, permitLimit, window,refillCapacity);
     }
+    
+    
 }
