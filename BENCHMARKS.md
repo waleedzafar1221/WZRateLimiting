@@ -11,63 +11,81 @@ Performance numbers for WZ.RateLimiting, measured with [BenchmarkDotNet](https:/
 ```
 BenchmarkDotNet v0.15.8, Windows 10 (10.0.19045.6456/22H2/2022Update)
 Intel Core i7-8565U CPU 1.80GHz (Max: 2.00GHz) (Whiskey Lake), 1 CPU, 8 logical and 4 physical cores
-.NET SDK 10.0.111
-  [Host]     : .NET 8.0.30 (8.0.30, 8.0.3026.36720), X64 RyuJIT x86-64-v3
-  DefaultJob : .NET 8.0.30 (8.0.30, 8.0.3026.36720), X64 RyuJIT x86-64-v3
+.NET SDK 10.0.112
+  [Host]     : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v3
+  DefaultJob : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v3
 ```
 
-Measured: 2026-08-27
+Fixed Window measured: 2026-08-27. Sliding Window and Token Bucket measured: 2026-09-10
+(minor .NET patch version difference between runs — 8.0.30 vs 8.0.31 — noted for
+transparency; not expected to materially affect the comparison).
 
 ## Results
 
-| Method                  | Mean     | Error   | StdDev  | Gen0   | Allocated |
-|------------------------ |---------:|--------:|--------:|-------:|----------:|
-| EvaluateAsync_SingleKey | 160.1 ns | 1.40 ns | 1.24 ns | 0.0134 |      56 B |
+All benchmarks measure a single call to `EvaluateAsync` against an
+`InMemoryRateLimitStore`, repeatedly hitting the same identifier key, with
+`PermitLimit` (and `RefillCapacity` for Token Bucket) set high enough that
+every call takes the "allowed" path — i.e. this measures the cost of making
+a decision, not the cost of rejecting a request.
 
-**`EvaluateAsync_SingleKey`** — a single call to `FixedWindowAlgorithm.EvaluateAsync`
-against an `InMemoryRateLimitStore`, repeatedly hitting the same identifier key
-(no window expiry triggered, i.e. the "hot path" of an already-existing counter).
-
-- **~160 nanoseconds** per rate-limit decision
-- **56 bytes** allocated per call
-- Confidence interval: [158.702 ns; 161.495 ns] (99.9% CI)
+| Algorithm       | Mean     | Error   | StdDev  | Gen0   | Allocated |
+|-----------------|---------:|--------:|--------:|-------:|----------:|
+| Fixed Window    | 160.1 ns | 1.40 ns | 1.24 ns | 0.0134 |      56 B |
+| Sliding Window  | 196.6 ns | 3.85 ns | 5.00 ns | 0.0134 |      56 B |
+| Token Bucket    | 299.9 ns | 6.03 ns | 5.92 ns | 0.0343 |     144 B |
 
 ## Interpretation
 
-At ~160 ns per evaluation, WZ.RateLimiting's core decision logic adds
-negligible overhead relative to typical ASP.NET Core request processing
-times (usually measured in microseconds to milliseconds once middleware,
-routing, model binding, and application logic are included).
+All three algorithms complete in well under a microsecond, which is
+negligible next to typical ASP.NET Core request processing time (routing,
+model binding, controller execution — usually measured in microseconds to
+milliseconds). The differences between algorithms are real but small in
+absolute terms.
 
-The 56 B allocation per call is small but non-zero — primarily from the
-`RateLimitDecision` struct boxing and internal Task/ValueTask machinery.
-Reducing this further is a candidate optimization for a future version,
-but is not a concern for V1's target use cases (per-endpoint rate limiting
-on typical web APIs).
+**Sliding Window vs. Fixed Window** — about 23% slower (196.6 ns vs 160.1 ns),
+with identical allocation (56 B). This matches expectations: Sliding Window
+does one additional store read (the previous window's count) plus some
+floating-point arithmetic to compute the weighted estimate, but none of that
+work allocates on the heap — it's an extra store round-trip and some stack
+arithmetic, not new objects.
+
+**Token Bucket vs. Fixed Window** — about 87% slower (299.9 ns vs 160.1 ns)
+and allocates 2.5x as much (144 B vs 56 B). This is the most expensive of
+the three algorithms measured so far. The extra allocation is worth
+investigating further — floating-point token math and the current
+store-update pattern are the likely sources, and reducing this is a
+reasonable target for a future optimization pass, though at ~300 ns per
+call it is still not a practical concern for typical per-endpoint rate
+limiting on a web API.
+
+**Takeaway for choosing an algorithm:** performance is not the deciding
+factor between these three — all are fast enough for production use at
+sub-microsecond cost. Choose based on the *behavior* you need (see the
+README for what each algorithm optimizes for), not raw speed.
 
 ## What is NOT yet benchmarked
 
-This is a single micro-benchmark of the hot path, not a full picture.
-Missing coverage, to be added as the library grows:
-
 - **No-limiter baseline** — a comparison run with rate limiting entirely
-  absent, to isolate the middleware's own overhead from the algorithm's
+  absent, to isolate the middleware's own overhead from any algorithm's
   overhead.
-- **Concurrent load** — this benchmark is single-threaded. Behavior under
-  concurrent access (the scenario the concurrency unit tests already prove
-  is *correct*) has not yet been measured for *throughput*.
+- **Concurrent load** — all benchmarks above are single-threaded. Behavior
+  under concurrent access (the scenario the concurrency unit tests already
+  prove is *correct*) has not yet been measured for *throughput*.
 - **Different identifiers** — only the fixed IP-string path is measured.
-- **Different algorithms** — only Fixed Window exists in V1; Sliding
-  Window and Token Bucket will need their own benchmarks in V2.
-- **Full middleware pipeline** — this benchmarks the algorithm directly,
-  not an end-to-end HTTP request through `RateLimitingMiddleware`
-  (DI resolution, endpoint metadata lookup, header writing all add some
-  overhead not captured here).
-- **Memory under sustained load / high cardinality** — how the
-  `ConcurrentDictionary` in `InMemoryRateLimitStore` behaves with many
+  `UserIdentifier` and `ApiKeyIdentifier` add a claims/header lookup that
+  hasn't been isolated and measured separately.
+- **Full middleware pipeline** — these benchmarks call the algorithm
+  directly, not an end-to-end HTTP request through
+  `RateLimitingMiddleware` (DI resolution, endpoint metadata lookup, header
+  writing all add some overhead not captured here).
+- **Memory under sustained load / high cardinality** — how
+  `InMemoryRateLimitStore`'s underlying dictionary behaves with many
   thousands of distinct identifier keys over time (relevant to the
   "memory growth" and "high-cardinality identifiers" security
   consideration from the project's design goals).
+- **Token Bucket allocation source** — the 144 B figure above is measured,
+  but not yet root-caused to a specific line of code. Worth a follow-up
+  pass with a memory profiler before further optimizing.
 
 These will be added incrementally rather than all at once, following the
-same "measure, don't guess" principle as this first benchmark.
+same "measure, don't guess" principle as every benchmark in this file.
