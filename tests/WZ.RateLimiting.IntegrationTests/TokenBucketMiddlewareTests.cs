@@ -69,20 +69,22 @@ public class TokenBucketMiddlewareTests
     [Fact]
     public async Task RequestBeyondCapacity_ThroughFullPipeline_Returns429WithRetryAfter()
     {
-        // TODO: create server with capacity=1
-        using var server=await CreateServerAsync(1, 1, TimeSpan.FromSeconds(1));
-        using var client=server.CreateClient();
-        // TODO: send 1 request (should succeed), then a 2nd (should be 429)
+        var window = TimeSpan.FromSeconds(1);
+        using var server = await CreateServerAsync(1, 1, window);
+        using var client = server.CreateClient();
+
         var response1 = await client.GetAsync("/");
         var response2 = await client.GetAsync("/");
+
         Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
         Assert.Equal(HttpStatusCode.TooManyRequests, response2.StatusCode);
         Assert.True(response2.Headers.Contains("Retry-After"));
-        
-        // TODO: assert the 2nd response has a Retry-After header
-        await Task.Delay(1000);
+
+        // Wait comfortably longer than a full window so CI's scheduling
+        // jitter can't flip this — a 1:1 delay-to-window ratio is a race.
+        await Task.Delay(window + TimeSpan.FromSeconds(1));
+
         var response3 = await client.GetAsync("/");
-        // (hint: look at RejectedRequest_HasRetryAfterHeader above for the pattern)
         Assert.Equal(HttpStatusCode.OK, response3.StatusCode);
     }
 }
