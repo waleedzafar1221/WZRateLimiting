@@ -33,7 +33,8 @@ public static class ServiceCollectionExtensions
         // both built-in types since neither holds per-request state.
         services.AddSingleton<IpAddressIdentifier>();
         services.AddSingleton<FixedWindowAlgorithm>();
-
+        services.AddSingleton<SlidingWindowAlgorithm>();
+        services.AddSingleton<TokenBucketAlgorithm>();
         return services;
     }
 }

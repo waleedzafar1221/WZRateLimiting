@@ -6,9 +6,18 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddWzRateLimiting(options =>
 {
-    options.AddPolicy("login", policy =>
+   
+    options.AddPolicy("bucket-public-api", policy =>
     {
-        policy.PerIp().Limit(5).PerMinute();
+        policy.PerIp().UseTokenBucket().Capacity(2).PerMinute().Refill(1);
+    });
+    options.AddPolicy("slide-public-api", policy =>
+    {
+        policy.PerIp().UseSlideWindow().Limit(2).Window(TimeSpan.FromMinutes(1));
+    });
+    options.AddPolicy("fixed-public-api", policy =>
+    {
+        policy.PerIp().UseFixedWindow().Limit(2).Window(TimeSpan.FromMinutes(1));
     });
 });
 

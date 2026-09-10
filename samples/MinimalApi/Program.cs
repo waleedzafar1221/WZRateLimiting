@@ -5,9 +5,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(); 
 builder.Services.AddWzRateLimiting(options =>
 {
-    options.AddPolicy("public-api", policy =>
+    options.AddPolicy("bucket-public-api", policy =>
     {
         policy.PerIp().UseTokenBucket().Capacity(10).PerMinute().Refill(2);
+    });
+    options.AddPolicy("slide-public-api", policy =>
+    {
+        policy.PerIp().UseSlideWindow().Limit(2).Window(TimeSpan.FromMinutes(1));
+    });
+    options.AddPolicy("fixed-public-api", policy =>
+    {
+        policy.PerIp().UseFixedWindow().Limit(2).Window(TimeSpan.FromMinutes(1));
     });
 });
 
@@ -20,7 +28,11 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseWzRateLimiting();
 
-app.MapGet("/api/products", () => Results.Ok(new[] { "widget", "gadget" }))
-    .RequireWzRateLimiting("public-api");
+app.MapGet("/api/product-bucket", () => Results.Ok(new[] { "widget", "gadget" }))
+    .RequireWzRateLimiting("bucket-public-api");
+app.MapGet("/api/product-slide", () => Results.Ok(new[] { "widget", "gadget" }))
+    .RequireWzRateLimiting("slide-public-api");
+app.MapGet("/api/product-fixed", () => Results.Ok(new[] { "widget", "gadget" }))
+    .RequireWzRateLimiting("fixed-public-api");
 
 app.Run();

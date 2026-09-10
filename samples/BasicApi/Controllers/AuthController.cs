@@ -14,7 +14,22 @@ public class AuthController : ControllerBase
     /// 
     /// </summary>
     /// <returns></returns>
-    [EnableRateLimiting("login")]
-    [HttpPost("login")]
-    public IActionResult Login() => Ok(new { message = "Login successful" });
+    [EnableRateLimiting("fixed-public-api")]
+    [HttpPost("login-fixed")]
+    public IActionResult LoginFixed() => Ok(new { message = "Login successful" });
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    [EnableRateLimiting("slide-public-api")]
+    [HttpPost("login-Slide")]
+    public IActionResult LoginSlide() => Ok(new { message = "Login successful" });
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    [EnableRateLimiting("bucket-public-api")]
+    [HttpPost("login-Bucket")]
+    public IActionResult LoginBucket() => Ok(new { message = "Login successful" });
+   
 }
