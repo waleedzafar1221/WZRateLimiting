@@ -135,7 +135,7 @@ populated.
 
 **Important:** if a request reaches a `.PerUser()`-protected endpoint
 without being authenticated, `UserIdentifier` throws
-`InvalidOperationException` rather than silently grouping all
+`BadRequest` rather than silently grouping all
 unauthenticated callers into one shared bucket — a shared bucket would let
 one anonymous client exhaust the limit for every other anonymous caller.
 Only apply `.PerUser()` to endpoints that require authentication.
@@ -152,7 +152,7 @@ distinguish callers for rate-limiting purposes. Key validation/auth is the
 consuming application's responsibility.
 
 Same fail-fast behavior as `.PerUser()`: a request with no `X-API-Key`
-header throws `InvalidOperationException` rather than sharing a bucket
+header throws `BadRequest` rather than sharing a bucket
 across all keyless callers.
 
 ## Architecture
