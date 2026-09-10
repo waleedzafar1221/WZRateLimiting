@@ -32,6 +32,8 @@ public static class ServiceCollectionExtensions
         // by Type at request time (see Milestone 2). Singleton is safe for
         // both built-in types since neither holds per-request state.
         services.AddSingleton<IpAddressIdentifier>();
+        services.AddSingleton<UserIdentifier>();
+        services.AddSingleton<ApiKeyIdentifier>();
         services.AddSingleton<FixedWindowAlgorithm>();
         services.AddSingleton<SlidingWindowAlgorithm>();
         services.AddSingleton<TokenBucketAlgorithm>();

@@ -14,6 +14,7 @@ public sealed class RateLimitPolicyBuilder
     private Type _algorithmType = typeof(FixedWindowAlgorithm);
     private int _limit;
     private int _refillCapacity;
+    private string _temp_storage="";
     private TimeSpan _window;
 
     internal RateLimitPolicyBuilder(string name)
@@ -27,7 +28,45 @@ public sealed class RateLimitPolicyBuilder
         _identifierType = typeof(IpAddressIdentifier);
         return this;
     }
-    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder PerUser()
+    {
+        _identifierType = typeof(UserIdentifier);
+        return this;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="claimType"></param>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder ClaimType(string claimType)
+    {
+        _temp_storage=claimType;
+        return this;
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder PerApiKey()
+    {
+        _identifierType = typeof(ApiKeyIdentifier);
+        return this;
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="headerName"></param>
+    /// <returns></returns>
+    public RateLimitPolicyBuilder ApiKeyHeader(string headerName)
+    {
+        _temp_storage=headerName;
+        return this;
+    }
     /// <summary>
     /// Fixed window algorithm
     /// </summary>

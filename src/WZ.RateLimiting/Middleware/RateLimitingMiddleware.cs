@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using WZ.RateLimiting.Abstractions;
+using WZ.RateLimiting.Identifiers;
 using WZ.RateLimiting.Options;
 
 namespace WZ.RateLimiting.Middleware;
@@ -45,6 +46,30 @@ public sealed class RateLimitingMiddleware(RequestDelegate next, RateLimitingOpt
         var algorithm = (IRateLimitAlgorithm)context.RequestServices.GetRequiredService(policy.AlgorithmType);
 
         var identifierKey = await identifier.GetIdentifierAsync(context, context.RequestAborted);
+        if (identifierKey == string.Empty)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            switch (identifier)
+            {
+                case null:
+                    await context.Response.WriteAsync("Identifier is not selected.");
+                    break;
+                case ApiKeyIdentifier:
+                    await context.Response.WriteAsync("Identifier Api key value is missing.");
+                    break;
+                case IpAddressIdentifier:
+                    await context.Response.WriteAsync("Identifier Ip value is missing.");
+                    break;
+                case UserIdentifier:
+                    await context.Response.WriteAsync("Identifier User Claim value is missing.");
+                    break;
+                default:
+                    await context.Response.WriteAsync("Client identifier value is missing or invalid.");
+                    break;
+            }
+            
+            return; 
+        }
         var rateLimitContext = new RateLimitContext(identifierKey, policy);
 
         var decision = await algorithm.EvaluateAsync(rateLimitContext, context.RequestAborted);

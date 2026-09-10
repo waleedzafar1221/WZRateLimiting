@@ -28,6 +28,14 @@ public class RateLimitingMiddlewareTests
                         {
                             policy.PerIp().Limit(limit).Window(window);
                         });
+                        options.AddPolicy("test-user-identifier", policy =>
+                        {
+                            policy.PerUser().Limit(limit).Window(window);
+                        });
+                        options.AddPolicy("test-api-key", policy =>
+                        {
+                            policy.PerApiKey().Limit(limit).Window(window);
+                        });
                     });
                 });
                 webHost.Configure(app =>
@@ -37,6 +45,8 @@ public class RateLimitingMiddlewareTests
                     app.UseEndpoints(endpoints =>
                     {
                         endpoints.MapGet("/", () => "OK").RequireWzRateLimiting("test");
+                        endpoints.MapGet("/user", () => "OK").RequireWzRateLimiting("test-user-identifier");
+                        endpoints.MapGet("/apikey", () => "OK").RequireWzRateLimiting("test-api-key");
                     });
                 });
             });
@@ -104,5 +114,31 @@ public class RateLimitingMiddlewareTests
         Assert.True(response.Headers.Contains("X-RateLimit-Limit"));
         Assert.True(response.Headers.Contains("X-RateLimit-Remaining"));
         Assert.True(response.Headers.Contains("X-RateLimit-Reset"));
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    [Fact]
+    public async Task RejectRequest_NotHas_User_Claim()
+    {
+        using var server = await CreateServerAsync(2, TimeSpan.FromMinutes(1));
+        using var client = server.CreateClient();
+        
+        var response = await client.GetAsync("/user");
+        
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Fact]
+    public async Task RejectRequest_NotHas_Api_Key()
+    {
+        using var server = await CreateServerAsync(2, TimeSpan.FromMinutes(1));
+        using var client = server.CreateClient();
+        var response = await client.GetAsync("/apikey");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
