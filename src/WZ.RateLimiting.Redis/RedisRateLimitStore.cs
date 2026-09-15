@@ -10,25 +10,75 @@ namespace WZ.RateLimiting.Redis;
 public sealed class RedisRateLimitStore : IRateLimitStore
 {
     private readonly IConnectionMultiplexer _redis;
-    private const string FixedWindowScript = """
+    
+    private const string FixedAndSlideWindowScript = """
                                              local key = KEYS[1]
                                              local windowSeconds = tonumber(ARGV[1])
                                              local time = redis.call('TIME')
                                              local now = tonumber(time[1])
                                              local windowStart = redis.call('HGET', key, 'windowStart')
                                              local count = redis.call('HGET', key, 'count')
+                                             local pcount = redis.call('HGET', key, 'pcount')
+                                             
                                              if windowStart == false or (now - tonumber(windowStart)) >= windowSeconds then
+                                                 pcount = count == false and 0 or tonumber(count)
                                                  windowStart = now
                                                  count = 0
                                              else
                                                  windowStart = tonumber(windowStart)
                                                  count = tonumber(count)
+                                                 pcount = pcount == false and 0 or tonumber(pcount)
                                              end
+                                             
                                              count = count + 1
-                                             redis.call('HSET', key, 'windowStart', windowStart, 'count', count)
+                                             
+                                             redis.call('HSET', key, 'windowStart', windowStart, 'count', count, 'pcount', pcount)
                                              redis.call('EXPIRE', key, windowSeconds * 2)
-                                             return {count, windowStart}
+                                             
+                                             return {count, pcount, windowStart}
                                              """;
+    private const string IncrementBucketScript = """
+                                                 local key = KEYS[1]
+                                                 local windowSeconds = tonumber(ARGV[1])
+                                                 local capacity = tonumber(ARGV[2])
+
+                                                 local time = redis.call('TIME')
+                                                 local now = tonumber(time[1])
+
+                                                 local windowStart = redis.call('HGET', key, 'windowStart')
+                                                 local count = redis.call('HGET', key, 'count')
+                                                 local pcount = redis.call('HGET', key, 'pcount')
+
+                                                 if windowStart == false then
+                                                     windowStart = now
+                                                     count = capacity
+                                                     pcount = 0
+                                                     redis.call('HSET', key, 'windowStart', windowStart, 'count', count, 'pcount', pcount)
+                                                     redis.call('EXPIRE', key, windowSeconds * 2)
+                                                 else
+                                                     windowStart = tonumber(windowStart)
+                                                     count = tonumber(count)
+                                                     pcount = pcount == false and 0 or tonumber(pcount)
+                                                 end
+
+                                                 return {count, pcount, windowStart}
+                                                 """;
+    private const string UpdateScript = """
+                                        local key = KEYS[1]
+                                        local windowSeconds = tonumber(ARGV[1])
+                                        local windowStart = tonumber(ARGV[2])
+                                        local count = tonumber(ARGV[3])
+                                        local pcount = tonumber(ARGV[4])
+
+                                        redis.call('HSET', key,
+                                            'windowStart', windowStart,
+                                            'count', count,
+                                            'pcount', pcount)
+
+                                        redis.call('EXPIRE', key, windowSeconds * 2)
+
+                                        return {count, pcount, windowStart}
+                                        """;
     /// <summary>
     /// </summary>
     /// <param name="redis"></param>
@@ -84,18 +134,20 @@ public sealed class RedisRateLimitStore : IRateLimitStore
         var redisKeys = new RedisKey[] { key };
         var redisArgs = new RedisValue[] { (long)window.TotalSeconds };
 
-        RedisResult result = await db.ScriptEvaluateAsync(FixedWindowScript, redisKeys, redisArgs);
+        RedisResult result = await db.ScriptEvaluateAsync(FixedAndSlideWindowScript, redisKeys, redisArgs);
 
         // The script returns a Lua table {count, windowStart}, which
         // StackExchange.Redis surfaces as a RedisResult[] here.
         var values = (RedisResult[])result!;
 
         int count = (int)(long)values[0];
-        long windowStartUnixSeconds = (long)values[1];
+        int pCount = (int)(long)values[1];
+        long windowStartUnixSeconds = (long)values[2];
+        
 
         var windowStart = DateTimeOffset.FromUnixTimeSeconds(windowStartUnixSeconds);
 
-        return new RateLimitCounterEntry(0,count, windowStart);
+        return new RateLimitCounterEntry(pCount,count, windowStart);
 
     }
 
@@ -116,23 +168,35 @@ public sealed class RedisRateLimitStore : IRateLimitStore
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public ValueTask<RateLimitCounterEntry> UpdateAsync(string key, RateLimitCounterEntry entry, CancellationToken cancellationToken)
+    public async ValueTask<RateLimitCounterEntry> UpdateAsync(string key, RateLimitCounterEntry entry, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var db = _redis.GetDatabase();
+
+        var redisKeys = new RedisKey[] { key };
+        var redisArgs = new RedisValue[]
+        {
+            // The interface doesn't pass a window to UpdateAsync, so we need one.
+            // Options below — pick the one that matches your contract.
+            (long)TimeSpan.FromMinutes(1).TotalSeconds,   // ⚠️ placeholder, see note
+            entry.WindowStart.ToUnixTimeSeconds(),
+            entry.Count,
+            entry.PCount
+        };
+
+        RedisResult result = await db.ScriptEvaluateAsync(UpdateScript, redisKeys, redisArgs);
+
+        var values = (RedisResult[])result!;
+
+        int count  = (int)(long)values[0];
+        int pCount = (int)(long)values[1];
+        long windowStartUnixSeconds = (long)values[2];
+
+        var windowStart = DateTimeOffset.FromUnixTimeSeconds(windowStartUnixSeconds);
+
+        return new RateLimitCounterEntry(pCount, count, windowStart);
     }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="key"></param>
-    /// <param name="entry"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
-    public ValueTask<bool> CheckBucketAsync(string key, RateLimitCounterEntry entry, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     /// <summary>
     /// </summary>
     /// <param name="key"></param>
@@ -141,19 +205,27 @@ public sealed class RedisRateLimitStore : IRateLimitStore
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public ValueTask<RateLimitCounterEntry> IncrementBucketAsync(string key, int capacity, TimeSpan window, CancellationToken cancellationToken)
+    public async ValueTask<RateLimitCounterEntry> IncrementBucketAsync(string key, int capacity, TimeSpan window, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
-    }
-    private static string LoadScript(string fileName)
-    {
-        var assembly = typeof(RedisRateLimitStore).Assembly;
-        var resourceName = $"WZ.RateLimiting.Redis.Scripts.{fileName}";
-    
-        using var stream = assembly.GetManifestResourceStream(resourceName)
-                           ?? throw new InvalidOperationException($"Embedded resource not found: {resourceName}");
-        using var reader = new StreamReader(stream);
-    
-        return reader.ReadToEnd();
+        var db = _redis.GetDatabase();
+
+        var redisKeys = new RedisKey[] { key };
+        var redisArgs = new RedisValue[]
+        {
+            (long)window.TotalSeconds,
+            (long)capacity
+        };
+
+        RedisResult result = await db.ScriptEvaluateAsync(IncrementBucketScript, redisKeys, redisArgs);
+
+        var values = (RedisResult[])result!;
+
+        int count  = (int)(long)values[0];
+        int pCount = (int)(long)values[1];
+        long windowStartUnixSeconds = (long)values[2];
+
+        var windowStart = DateTimeOffset.FromUnixTimeSeconds(windowStartUnixSeconds);
+
+        return new RateLimitCounterEntry(pCount, count, windowStart);
     }
 }

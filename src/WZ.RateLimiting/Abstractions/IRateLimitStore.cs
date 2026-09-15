@@ -45,14 +45,7 @@ public interface IRateLimitStore
     /// <returns></returns>
     ValueTask<RateLimitCounterEntry> UpdateAsync(string key,RateLimitCounterEntry entry, CancellationToken cancellationToken);
     
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="key"></param>
-    /// <param name="entry"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    ValueTask<bool> CheckBucketAsync(string key,RateLimitCounterEntry entry, CancellationToken cancellationToken);
+    
 
     /// <summary>
     /// 

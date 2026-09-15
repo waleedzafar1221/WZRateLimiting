@@ -86,17 +86,7 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
         return ValueTask.FromResult(Snapshot(_counters[key]));
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="key"></param>
-    /// <param name="entry"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public ValueTask<bool> CheckBucketAsync(string key, RateLimitCounterEntry entry, CancellationToken cancellationToken)
-    {
-        return ValueTask.FromResult(false);
-    }
+    
 
     /// <summary>
     /// 
@@ -111,8 +101,10 @@ public sealed class InMemoryRateLimitStore : IRateLimitStore
     {
         var state = _counters.GetOrAdd(key, _ =>
         {
-            var newState = new CounterState(DateTimeOffset.UtcNow);
-            newState.Count = capacity;
+            var newState = new CounterState(DateTimeOffset.UtcNow)
+            {
+                Count = capacity
+            };
             return newState;
         });
         return ValueTask.FromResult(Snapshot(state));
