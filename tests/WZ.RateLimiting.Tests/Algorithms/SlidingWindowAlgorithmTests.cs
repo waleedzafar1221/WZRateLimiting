@@ -124,7 +124,7 @@ public class SlidingWindowAlgorithmTests
         // Immediately after crossing, almost all of window 1's requests
         // should still count against us under sliding window.
         var justAfterBoundary = await algorithm.EvaluateAsync(context, CancellationToken.None);
-        Console.WriteLine($"IsAllowed={justAfterBoundary.IsAllowed}, Remaining={justAfterBoundary.Remaining}");
+     
 
         Assert.False(
             justAfterBoundary.IsAllowed,

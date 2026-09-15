@@ -12,8 +12,8 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit"  />
     <PackageReference Include="StackExchange.Redis" />
-    <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\WZ.RateLimiting.Redis\WZ.RateLimiting.Redis.csproj" />
-    <ProjectReference Include="..\..\src\WZ.RateLimiting\WZ.RateLimiting.csproj" />
   </ItemGroup>
 
 </Project>
