@@ -1,5 +1,6 @@
 ﻿using StackExchange.Redis;
-namespace WZ.RateLimiting.Redis.Tests;
+
+namespace WZ.RateLimiting.Redis.Tests.Storage;
 
 /// <summary>
 /// 
