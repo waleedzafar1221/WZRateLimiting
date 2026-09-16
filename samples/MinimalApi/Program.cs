@@ -1,8 +1,14 @@
+using StackExchange.Redis;
+using WZ.RateLimiting.Abstractions;
 using WZ.RateLimiting.Extensions;
+using WZ.RateLimiting.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect("localhost:6379"));
 builder.Services.AddEndpointsApiExplorer(); 
 builder.Services.AddSwaggerGen(); 
+builder.Services.AddSingleton<IRateLimitStore, RedisRateLimitStore>();
 builder.Services.AddWzRateLimiting(options =>
 {
     options.AddPolicy("bucket-public-api", policy =>

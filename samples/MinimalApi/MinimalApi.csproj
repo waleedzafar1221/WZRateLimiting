@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\WZ.RateLimiting\WZ.RateLimiting.csproj" />
+    <ProjectReference Include="..\..\src\WZ.RateLimiting.Redis\WZ.RateLimiting.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>

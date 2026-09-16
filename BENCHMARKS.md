@@ -34,6 +34,33 @@ a decision, not the cost of rejecting a request.
 | Sliding Window  | 196.6 ns | 3.85 ns | 5.00 ns | 0.0134 |      56 B |
 | Token Bucket    | 299.9 ns | 6.03 ns | 5.92 ns | 0.0343 |     144 B |
 
+## In-Memory vs. Redis: The Cost of Distributed Correctness
+
+| Store       | Algorithm      | Mean      | StdDev   | Allocated |
+|-------------|----------------|----------:|---------:|----------:|
+| In-Memory   | Fixed Window   | 160.1 ns  | 1.24 ns  | 56 B      |
+| In-Memory   | Sliding Window | 196.6 ns  | 5.00 ns  | 56 B      |
+| In-Memory   | Token Bucket   | 299.9 ns  | 5.92 ns  | 144 B     |
+| Redis       | Fixed Window   | 580.2 µs  | 80.40 µs | 1.6 KB    |
+| Redis       | Sliding Window | 609.5 µs  | 72.16 µs | (not measured) |
+| Redis       | Token Bucket   | 1,191 µs  | 181.6 µs | (not measured) |
+
+Every Redis-backed algorithm costs roughly 2,000–4,000x its in-memory
+counterpart — the expected, correct tradeoff for correctness across
+multiple app instances, discussed above.
+
+**A notable pattern:** the *relative* cost ordering between algorithms
+mostly holds between in-memory and Redis (Sliding Window costs modestly
+more than Fixed Window in both), but Token Bucket is a clear outlier —
+roughly 2x Fixed Window's Redis cost, a much larger jump than its ~1.9x
+in-memory ratio would suggest. This points to Token Bucket's Lua script
+doing meaningfully more work per call than the other two scripts (likely
+more `redis.call` round-trips within the script itself, and/or the
+string-based fractional-token serialization it uses that the other two
+algorithms don't need). This is flagged as a genuine, not-yet-root-caused
+finding — worth a profiling pass before further optimizing, rather than
+speculating further here.
+
 ## Interpretation
 
 All three algorithms complete in well under a microsecond, which is
